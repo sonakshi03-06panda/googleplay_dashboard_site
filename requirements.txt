@@ -6,4 +6,4 @@ datetime
 pytz
 seaborn
 matplotlib
-sklearn
+scikit-learn 
