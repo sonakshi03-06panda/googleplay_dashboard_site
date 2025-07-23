@@ -52,57 +52,76 @@ ist_now = datetime.now(pytz.timezone("Asia/Kolkata")).time()
 
 
 # -------------------- Chart 1: Revenue vs Installs --------------------
-st.subheader("💰 Revenue vs Installs (Paid Apps Only) with Trendline")
-paid_apps = df[df['Price'] > 0]
 
+st.subheader("💰 Revenue vs Installs (Paid Apps Only) with Trendline")
+paid_apps = df[df['Price'] > 0].copy()
 st.write("✅ Total apps:", len(df))
 st.write("💰 Paid apps:", len(paid_apps))
 
 if not paid_apps.empty:
-    X = paid_apps[['Installs']]
-    y = paid_apps['Revenue']
-    model = LinearRegression().fit(X, y)
-    paid_apps['Trendline'] = model.predict(X)
+    # Linear Regression for Trendline
+    model = LinearRegression().fit(paid_apps[['Installs']], paid_apps['Revenue'])
+    paid_apps['Trendline'] = model.predict(paid_apps[['Installs']])
 
-    fig, ax = plt.subplots(figsize=(12, 8))
-    sns.scatterplot(data=paid_apps, x='Installs', y='Revenue', hue='Category', palette='tab20', alpha=0.7, ax=ax)
-    ax.plot(paid_apps['Installs'], paid_apps['Trendline'], color='black', linewidth=2, label='Trendline')
-    ax.set(title='Revenue vs Installs for Paid Apps', xlabel='Number of Installs', ylabel='Estimated Revenue (USD)')
-    ax.legend()
-    st.pyplot(fig)
+    fig1 = px.scatter(
+        paid_apps, x='Installs', y='Revenue', color='Category',
+        hover_data=['App', 'Price', 'Reviews'],
+        title='Revenue vs Installs for Paid Apps',
+        opacity=0.7,
+        color_discrete_sequence=px.colors.qualitative.Set3
+    )
+
+    # Add trendline manually
+    fig1.add_scatter(
+        x=paid_apps['Installs'], y=paid_apps['Trendline'],
+        mode='lines', name='Trendline',
+        line=dict(color='black', width=2)
+    )
+
+    fig1.update_layout(
+        height=600,
+        legend_title_text='Category',
+        legend=dict(x=1.02, y=1, xanchor='left', yanchor='top'),
+        margin=dict(r=160)
+    )
+
+    st.plotly_chart(fig1, use_container_width=True)
 else:
     st.warning("⚠️ No paid apps available.")
 
 
 # -------------------- Chart 2: Choropleth Map (6–8 PM IST) --------------------
+
 if datetime.strptime("18:00", "%H:%M").time() <= ist_now <= datetime.strptime("20:00", "%H:%M").time():
     st.subheader("🗺️ Global Installs by Category (6–8 PM IST)")
 
-    chorofilter = df[
-        ~df['Category'].str.startswith(tuple("ACGS")) & (df['Installs'] > 1_000_000)
-    ]
+    chorofilter = df[~df['Category'].str.startswith(tuple("ACGS")) & (df['Installs'] > 1_000_000)]
     top5_categories = chorofilter['Category'].value_counts().nlargest(5).index
     chorodata = chorofilter[chorofilter['Category'].isin(top5_categories)].copy()
     chorodata['Country'] = np.random.choice(['USA', 'IND', 'GBR', 'CAN', 'AUS'], size=len(chorodata))
 
     selected_category = st.radio("Select Category to View:", top5_categories)
-    agg_data = (
-        chorodata[chorodata['Category'] == selected_category]
-        .groupby('Country', as_index=False)['Installs']
-        .sum()
-    )
+    agg_data = chorodata[chorodata['Category'] == selected_category].groupby('Country', as_index=False)['Installs'].sum()
 
     fig2 = px.choropleth(
-        agg_data, locations='Country', locationmode='ISO-3', color='Installs',
-        hover_name='Country', title=f'Choropleth Map for {selected_category} Apps',
-        color_continuous_scale='Plasma', height=600
+        agg_data,
+        locations='Country',
+        locationmode='ISO-3',
+        color='Installs',
+        hover_name='Country',
+        title=f'Choropleth Map for {selected_category} Apps',
+        color_continuous_scale='Plasma',
+        height=600
     )
+
+    fig2.update_layout(margin=dict(r=50, l=50, t=50, b=50))
     st.plotly_chart(fig2, use_container_width=True)
 else:
     st.info("🌐 Choropleth map is available only between 6 PM and 8 PM IST.")
 
 
 # -------------------- Chart 3: Time-Series (6–9 PM IST) --------------------
+
 if datetime.strptime("18:00", "%H:%M").time() <= ist_now <= datetime.strptime("21:00", "%H:%M").time():
     st.subheader("📈 Time-Series of Installs by Category (6–9 PM IST)")
 
@@ -112,15 +131,26 @@ if datetime.strptime("18:00", "%H:%M").time() <= ist_now <= datetime.strptime("2
         (df['Reviews'] > 500) &
         df['Category'].str.startswith(tuple("ECB"))
     )
-    timeseries_df = df[mask].copy()
-    timeseries_df['Category'] = timeseries_df['Category'].replace({
+    ts_df = df[mask].copy()
+    ts_df['Category'] = ts_df['Category'].replace({
         'Beauty': 'सौंदर्य', 'Business': 'வணிகம்', 'Dating': 'Partnersuche'
     })
-    timeseries_df['Month'] = timeseries_df['Last Updated'].dt.to_period('M').dt.to_timestamp()
+    ts_df['Month'] = ts_df['Last Updated'].dt.to_period('M').dt.to_timestamp()
 
-    grouped = timeseries_df.groupby(['Month', 'Category'])['Installs'].sum().unstack(fill_value=0)
+    grouped_ts = ts_df.groupby(['Month', 'Category'])['Installs'].sum().reset_index()
 
-    fig3 = px.line(grouped, title='Time-Series Trend of Installs by Category', height=600)
+    fig3 = px.line(
+        grouped_ts, x='Month', y='Installs', color='Category',
+        title='Time-Series Trend of Installs by Category',
+        markers=True,
+        color_discrete_sequence=px.colors.qualitative.D3
+    )
+
+    fig3.update_layout(
+        height=600,
+        legend=dict(x=1.02, y=1, xanchor='left'),
+        margin=dict(r=160)
+    )
     st.plotly_chart(fig3, use_container_width=True)
 else:
     st.info("📆 Time-Series chart is available only between 6 PM and 9 PM IST.")
