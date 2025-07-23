@@ -53,41 +53,58 @@ ist_now = datetime.now(pytz.timezone("Asia/Kolkata")).time()
 
 # -------------------- Chart 1: Revenue vs Installs --------------------
 
-st.subheader("💰 Revenue vs Installs (Paid Apps Only) with Trendline")
+# Filter paid apps
 paid_apps = df[df['Price'] > 0].copy()
+st.subheader("💰 Revenue vs Installs (Paid Apps Only) with Trendline")
+
 st.write("✅ Total apps:", len(df))
 st.write("💰 Paid apps:", len(paid_apps))
 
 if not paid_apps.empty:
-    # Linear Regression for Trendline
+    # Linear Regression
     model = LinearRegression().fit(paid_apps[['Installs']], paid_apps['Revenue'])
     paid_apps['Trendline'] = model.predict(paid_apps[['Installs']])
 
+    # Base scatter plot with Plotly
     fig1 = px.scatter(
-        paid_apps, x='Installs', y='Revenue', color='Category',
-        hover_data=['App', 'Price', 'Reviews'],
-        title='Revenue vs Installs for Paid Apps',
+        paid_apps,
+        x="Installs",
+        y="Revenue",
+        color="Category",
+        hover_data=["App", "Price", "Reviews"],
+        title="Revenue vs Installs for Paid Apps",
         opacity=0.7,
-        color_discrete_sequence=px.colors.qualitative.Set3
+        color_discrete_sequence=px.colors.qualitative.Set3,
+        height=600
     )
 
-    # Add trendline manually
-    fig1.add_scatter(
-        x=paid_apps['Installs'], y=paid_apps['Trendline'],
-        mode='lines', name='Trendline',
-        line=dict(color='black', width=2)
+    # Add trendline
+    fig1.add_trace(
+        go.Scatter(
+            x=paid_apps["Installs"],
+            y=paid_apps["Trendline"],
+            mode="lines",
+            name="Trendline",
+            line=dict(color="black", width=2)
+        )
     )
 
+    # External legend & margin fix
     fig1.update_layout(
-        height=600,
-        legend_title_text='Category',
-        legend=dict(x=1.02, y=1, xanchor='left', yanchor='top'),
+        legend=dict(
+            title="Category",
+            x=1.02, y=1,
+            xanchor='left',
+            yanchor='top'
+        ),
         margin=dict(r=160)
     )
 
     st.plotly_chart(fig1, use_container_width=True)
+
 else:
     st.warning("⚠️ No paid apps available.")
+
 
 
 # -------------------- Chart 2: Choropleth Map (6–8 PM IST) --------------------
