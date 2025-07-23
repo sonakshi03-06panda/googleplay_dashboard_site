@@ -90,8 +90,7 @@ if datetime.strptime("18:00", "%H:%M").time() <= ist_now <= datetime.strptime("2
         (~df['App'].str.lower().str.startswith(tuple('xyz')))
         & (~df['App'].str.contains('S', case=False))
         & (df['Reviews'] > 500)
-        & (df['Category'].str.startswith(tuple("ECB")))
-    ].copy()
+        & (df['Category'].str.startswith(tuple("ECB"))) ].copy()
 
     translate = {'Beauty': 'सौंदर्य', 'Business': 'வணிகம்', 'Dating': 'Partnersuche'}
     df_filtered['Category'] = df_filtered['Category'].replace(translate)
