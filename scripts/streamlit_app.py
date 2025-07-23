@@ -4,6 +4,7 @@ import streamlit as st
 import seaborn as sns
 import matplotlib.pyplot as plt
 import plotly.express as px
+import plotly.graph_objects as go
 from sklearn.linear_model import LinearRegression
 from datetime import datetime
 import pytz
@@ -53,19 +54,18 @@ ist_now = datetime.now(pytz.timezone("Asia/Kolkata")).time()
 
 # -------------------- Chart 1: Revenue vs Installs --------------------
 
-# Filter paid apps
-paid_apps = df[df['Price'] > 0].copy()
 st.subheader("💰 Revenue vs Installs (Paid Apps Only) with Trendline")
 
+paid_apps = df[df['Price'] > 0].copy()
 st.write("✅ Total apps:", len(df))
 st.write("💰 Paid apps:", len(paid_apps))
 
 if not paid_apps.empty:
-    # Linear Regression
+    # Train model
     model = LinearRegression().fit(paid_apps[['Installs']], paid_apps['Revenue'])
     paid_apps['Trendline'] = model.predict(paid_apps[['Installs']])
 
-    # Base scatter plot with Plotly
+    # Interactive scatter plot
     fig1 = px.scatter(
         paid_apps,
         x="Installs",
@@ -89,7 +89,7 @@ if not paid_apps.empty:
         )
     )
 
-    # External legend & margin fix
+    # External legend
     fig1.update_layout(
         legend=dict(
             title="Category",
@@ -97,14 +97,13 @@ if not paid_apps.empty:
             xanchor='left',
             yanchor='top'
         ),
-        margin=dict(r=160)
+        margin=dict(r=180)
     )
 
     st.plotly_chart(fig1, use_container_width=True)
 
 else:
     st.warning("⚠️ No paid apps available.")
-
 
 
 # -------------------- Chart 2: Choropleth Map (6–8 PM IST) --------------------
