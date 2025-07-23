@@ -61,11 +61,11 @@ st.write("✅ Total apps:", len(df))
 st.write("💰 Paid apps:", len(paid_apps))
 
 if not paid_apps.empty:
-    # Train model
+    # Linear Regression
     model = LinearRegression().fit(paid_apps[['Installs']], paid_apps['Revenue'])
     paid_apps['Trendline'] = model.predict(paid_apps[['Installs']])
 
-    # Interactive scatter plot
+    # Plotly Scatter
     fig1 = px.scatter(
         paid_apps,
         x="Installs",
@@ -78,7 +78,7 @@ if not paid_apps.empty:
         height=600
     )
 
-    # Add trendline
+    # Add Trendline
     fig1.add_trace(
         go.Scatter(
             x=paid_apps["Installs"],
@@ -89,7 +89,7 @@ if not paid_apps.empty:
         )
     )
 
-    # External legend
+    # Format Layout
     fig1.update_layout(
         legend=dict(
             title="Category",
@@ -101,7 +101,6 @@ if not paid_apps.empty:
     )
 
     st.plotly_chart(fig1, use_container_width=True)
-
 else:
     st.warning("⚠️ No paid apps available.")
 
