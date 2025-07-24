@@ -106,7 +106,7 @@ if not paid_apps.empty:
     )
 
     fig1.update_layout(
-        plot_bgcolor='white', paper_bgcolor='white',
+        plot_bgcolor='white',
         legend=dict(title="Category", x=1.02, y=1, xanchor='left', yanchor='top'),
         margin=dict(r=180)
     )
