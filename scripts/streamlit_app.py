@@ -1,177 +1,169 @@
-import pandas as pd
-import numpy as np
 import streamlit as st
-import seaborn as sns
-import matplotlib.pyplot as plt
+import pandas as pd
 import plotly.express as px
-import plotly.graph_objects as go
 from sklearn.linear_model import LinearRegression
-from datetime import datetime
-import pytz
+from streamlit_lottie import st_lottie
+import requests
 
-# -------------------- App Configuration --------------------
-st.set_page_config(layout="wide")
-st.title("📱 Google Play Store Dashboard")
+# ------------------ Page Config ------------------
+st.set_page_config(page_title="Google Play Dashboard", page_icon="📱", layout="wide")
 
-# -------------------- Load & Preprocess Dataset --------------------
-CSV_FILE = "google_playstore.csv"
+# ------------------ Theme Toggle ------------------
+theme = st.sidebar.radio("🌓 Theme", ["Light", "Dark"])
+if theme == "Dark":
+    st.markdown(
+        """
+        <style>
+        .main {
+            background-color: #0E1117;
+            color: #FAFAFA;
+        }
+        </style>
+        """,
+        unsafe_allow_html=True,
+    )
 
+# ------------------ Lottie Animation ------------------
+def load_lottie_url(url):
+    r = requests.get(url)
+    if r.status_code != 200:
+        return None
+    return r.json()
+
+hero_lottie = load_lottie_url("https://assets9.lottiefiles.com/private_files/lf30_mn53fgpa.json")
+
+# ------------------ Load Data ------------------
 @st.cache_data
-def load_and_clean_data(filepath):
-    try:
-        df = pd.read_csv(filepath)
-    except FileNotFoundError:
-        return None
-
-    df.columns = df.columns.str.strip()
-    required_cols = ['App', 'Category', 'Last Updated', 'Installs', 'Price', 'Reviews']
-    if not all(col in df.columns for col in required_cols):
-        return None
-
-    df.dropna(subset=required_cols, inplace=True)
-
-    # Clean and convert
-    df['Installs'] = (
-        df['Installs']
-        .astype(str)
-        .str.replace(r'[+,]', '', regex=True)
-        .str.strip()
-        .replace('Free', np.nan)
-    )
-    df['Installs'] = pd.to_numeric(df['Installs'], errors='coerce')
-
-    df['Price'] = (
-        df['Price']
-        .astype(str)
-        .str.replace('$', '', regex=False)
-        .str.strip()
-        .replace('Free', '0')
-    )
-    df['Price'] = pd.to_numeric(df['Price'], errors='coerce')
-
-    df['Reviews'] = (
-        df['Reviews']
-        .astype(str)
-        .str.replace(r'[+,]', '', regex=True)
-        .str.strip()
-    )
-    df['Reviews'] = pd.to_numeric(df['Reviews'], errors='coerce')
-
-    df['Last Updated'] = pd.to_datetime(df['Last Updated'], errors='coerce')
-
-    # Drop rows with any failed conversions
-    df.dropna(subset=['Installs', 'Price', 'Last Updated', 'Reviews'], inplace=True)
-
-    # Add Revenue
-    df['Revenue'] = df['Installs'] * df['Price']
-
+def load_data():
+    df = pd.read_csv("google_playstore.csv")
+    df["Last Updated"] = pd.to_datetime(df["Last Updated"], errors="coerce")
     return df
 
-df = load_and_clean_data(CSV_FILE)
+df = load_data()
+paid_apps = df[df["Price"] > 0]
 
-if df is None:
-    st.error(f"❌ '{CSV_FILE}' not found or missing required columns.")
-    st.stop()
+# ------------------ Navigation ------------------
+st.sidebar.title("📊 Navigation")
+section = st.sidebar.radio("Go to", [
+    "🏠 Home",
+    "📈 Revenue vs Installs",
+    "🌍 Choropleth Map",
+    "📆 Time Series Chart",
+    "📬 About & Contact"
+])
+st.sidebar.markdown("---")
+st.sidebar.caption("Built with ❤️ using Streamlit")
 
-ist_now = datetime.now(pytz.timezone("Asia/Kolkata")).time()
+# ------------------ 🏠 Home ------------------
+if section == "🏠 Home":
+    st_lottie(hero_lottie, height=200)
+    st.title("📱 Google Play Store Dashboard")
+    st.markdown("Explore insights from the Play Store dataset — app installs, revenue, global trends, and more!")
 
-def within_time(start, end):
-    return start <= ist_now <= end
+    col1, col2, col3 = st.columns(3)
+    col1.metric("Total Apps", f"{len(df):,}")
+    col2.metric("Paid Apps", f"{len(paid_apps):,}")
+    col3.metric("Categories", df["Category"].nunique())
 
-# -------------------- Chart 1: Revenue vs Installs --------------------
-st.subheader("💰 Revenue vs Installs (Paid Apps Only) with Trendline")
+    with st.expander("ℹ️ About the Dataset"):
+        st.write("""
+        This dataset includes details of Android apps available on the Google Play Store, such as:
+        - Category
+        - Installs
+        - Revenue (calculated)
+        - Last updated date
+        - Country (for choropleth)
+        """)
 
-paid_apps = df[df['Price'] > 0]
+# ------------------ 📈 Revenue vs Installs ------------------
+elif section == "📈 Revenue vs Installs":
+    st.header("💰 Revenue vs Installs (Paid Apps Only)")
 
-st.write("✅ Total apps:", len(df))
-st.write("💰 Paid apps:", len(paid_apps))
+    if not paid_apps.empty:
+        model = LinearRegression().fit(paid_apps[["Installs"]], paid_apps["Revenue"])
+        paid_apps["Trendline"] = model.predict(paid_apps[["Installs"]])
 
-if not paid_apps.empty:
-    model = LinearRegression().fit(paid_apps[['Installs']], paid_apps['Revenue'])
-    paid_apps = paid_apps.assign(Trendline=model.predict(paid_apps[['Installs']]))
+        fig = px.scatter(
+            paid_apps,
+            x="Installs",
+            y="Revenue",
+            color="Category",
+            trendline="ols",
+            title="Revenue vs Installs (Paid Apps)"
+        )
+        fig.update_layout(legend=dict(x=1.02, y=1))
+        st.plotly_chart(fig, use_container_width=True)
+    else:
+        st.warning("No paid apps available in dataset.")
 
-    fig1 = px.scatter(
-        paid_apps, x="Installs", y="Revenue", color="Category",
-        hover_data=["App", "Price", "Reviews"],
-        title="Revenue vs Installs for Paid Apps",
-        opacity=0.7,
-        color_discrete_sequence=px.colors.qualitative.Set3,
-        height=600
+# ------------------ 🌍 Choropleth Map ------------------
+elif section == "🌍 Choropleth Map":
+    st.header("🌍 Global Installs by Country (Top 5 Categories)")
+
+    if "Country" not in df.columns:
+        st.error("❌ Dataset must include a 'Country' column for this map.")
+    else:
+        filtered = df[~df["Category"].str.startswith(("A", "C", "G", "S"))]
+        top5 = filtered.groupby("Category")["Installs"].sum().nlargest(5).index.tolist()
+        filtered_df = df[df["Category"].isin(top5) & (df["Installs"] > 1_000_000)]
+
+        map_df = filtered_df.groupby("Country")["Installs"].sum().reset_index()
+
+        fig = px.choropleth(
+            map_df,
+            locations="Country",
+            locationmode="country names",
+            color="Installs",
+            hover_name="Country",
+            color_continuous_scale="Plasma",
+            title="Total Installs by Country (Top Categories)"
+        )
+        fig.update_layout(margin={"r": 0, "t": 40, "l": 0, "b": 0})
+        st.plotly_chart(fig, use_container_width=True)
+
+# ------------------ 📆 Time Series Chart ------------------
+elif section == "📆 Time Series Chart":
+    st.header("📈 Install Trends Over Time by Category")
+
+    time_df = df.dropna(subset=["Last Updated", "Installs", "Category"])
+    categories = sorted(time_df["Category"].unique())
+    selected = st.multiselect("Select Categories", categories, default=categories[:5])
+
+    filtered_df = time_df[time_df["Category"].isin(selected)]
+
+    monthly_installs = (
+        filtered_df.groupby([pd.Grouper(key="Last Updated", freq="M"), "Category"])
+        .agg({"Installs": "sum"})
+        .reset_index()
     )
 
-    fig1.add_trace(go.Scatter(
-            x=paid_apps["Installs"], y=paid_apps["Trendline"],
-            mode="lines", name="Trendline",
-            line=dict(color="white", width=2))
+    fig = px.line(
+        monthly_installs,
+        x="Last Updated",
+        y="Installs",
+        color="Category",
+        title="Install Trends by Category Over Time"
     )
+    fig.update_layout(xaxis_title="Date", yaxis_title="Installs", legend_title="Category")
+    st.plotly_chart(fig, use_container_width=True)
 
-    fig1.update_layout(
-        legend=dict(title="Category", x=1.02, y=1, xanchor='left', yanchor='top'),
-        margin=dict(r=180)
-    )
+# ------------------ 📬 About & Contact ------------------
+elif section == "📬 About & Contact":
+    st.header("📬 About this Project")
+    st.write("""
+    This interactive dashboard was created using Streamlit to explore Google Play Store app trends.
+    It covers installs, paid app revenue, country-wise distributions, and time-series trends.
+    """)
 
-    st.plotly_chart(fig1, use_container_width=True)
-else:
-    st.warning("⚠️ No paid apps available.")
+    st.subheader("👩‍💻 Developer")
+    st.markdown("**Sonakshi Panda**")
+    st.markdown("🔗 [GitHub](https://github.com/sonakshi03-06panda)")
 
-# -------------------- Chart 2: Choropleth Map (6–8 PM IST) --------------------
-if within_time(datetime.strptime("18:00", "%H:%M").time(), datetime.strptime("20:00", "%H:%M").time()):
-    st.subheader("🗺️ Global Installs by Category (6–8 PM IST)")
+    with st.form("contact_form"):
+        st.write("📨 Send a Message")
+        name = st.text_input("Your Name")
+        message = st.text_area("Your Message")
+        submitted = st.form_submit_button("Send")
+        if submitted:
+            st.success("✅ Message sent. Thanks for reaching out!")
 
-    chorodata = df[
-    ~df['Category'].astype(str).str.startswith(('A', 'C', 'G', 'S')) &
-    (df['Installs'] > 1_000_000)].copy()
-
-    top5_categories = chorodata['Category'].value_counts().nlargest(5).index
-    chorodata = chorodata[chorodata['Category'].isin(top5_categories)].copy()
-    chorodata['Country'] = np.random.choice(['USA', 'IND', 'GBR', 'CAN', 'AUS'], size=len(chorodata))
-
-    selected_category = st.radio("Select Category to View:", top5_categories)
-    agg_data = (
-        chorodata[chorodata['Category'] == selected_category]
-        .groupby('Country', as_index=False)['Installs'].sum()
-    )
-
-    fig2 = px.choropleth(
-        agg_data, locations='Country', locationmode='ISO-3', color='Installs',
-        hover_name='Country', title=f'Choropleth Map for {selected_category} Apps',
-        color_continuous_scale='Plasma', height=600
-    )
-    fig2.update_layout(margin=dict(r=50, l=50, t=50, b=50))
-    st.plotly_chart(fig2, use_container_width=True)
-else:
-    st.info("🌐 Choropleth map is available only between 6 PM and 8 PM IST.")
-
-# -------------------- Chart 3: Time-Series (6–9 PM IST) --------------------
-if within_time(datetime.strptime("18:00", "%H:%M").time(), datetime.strptime("21:00", "%H:%M").time()):
-    st.subheader("📈 Time-Series of Installs by Category (6–9 PM IST)")
-
-    ts_df = df[
-    ~df['App'].astype(str).str.lower().str.startswith(tuple('xyz')) &
-    ~df['App'].astype(str).str.contains('S', case=False, na=False) &
-    (df['Reviews'] > 500) &
-    df['Category'].astype(str).str.startswith(tuple('ECB'))].copy()
-
-    ts_df['Category'] = ts_df['Category'].replace({
-        'Beauty': 'सौंदर्य', 
-        'Business': 'வணிகம்', 
-        'Dating': 'Partnersuche'})
-    ts_df['Month'] = ts_df['Last Updated'].dt.to_period('M').dt.to_timestamp()
-
-    grouped_ts = ts_df.groupby(['Month', 'Category'])['Installs'].sum().reset_index()
-
-    fig3 = px.line(
-        grouped_ts, x='Month', y='Installs', color='Category',
-        title='Time-Series Trend of Installs by Category',
-        markers=True,
-        color_discrete_sequence=px.colors.qualitative.D3,
-        height=600
-    )
-
-    fig3.update_layout(
-        legend=dict(x=1.02, y=1, xanchor='left'),
-        margin=dict(r=160)
-    )
-    st.plotly_chart(fig3, use_container_width=True)
-else:
-    st.info("📆 Time-Series chart is available only between 6 PM and 9 PM IST.")
