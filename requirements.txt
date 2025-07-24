@@ -7,3 +7,5 @@ pytz
 seaborn
 matplotlib
 scikit-learn 
+requests
+streamlit-lottie
