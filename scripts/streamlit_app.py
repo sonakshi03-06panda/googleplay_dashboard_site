@@ -36,35 +36,33 @@ def load_lottie_url(url: str):
 # ------------------ Load Data ------------------
 @st.cache_data
 def load_data():
-    df = pd.read_csv("google_playstore.csv")
+    try:
+        df = pd.read_csv("google_playstore.csv")
 
-    # Convert Last Updated to datetime
-    df["Last Updated"] = pd.to_datetime(df["Last Updated"], errors="coerce")
+        df["Last Updated"] = pd.to_datetime(df["Last Updated"], errors="coerce")
+        df["Price"] = (
+            df["Price"]
+            .astype(str)
+            .str.replace("$", "", regex=False)
+            .str.replace("Free", "0", regex=False)
+            .str.strip()
+            .astype(float)
+        )
+        df["Installs"] = (
+            df["Installs"]
+            .astype(str)
+            .str.replace(",", "", regex=False)
+            .str.replace("+", "", regex=False)
+            .str.strip()
+            .astype(float)
+        )
+        df["Revenue"] = df["Price"] * df["Installs"]
 
-    # Clean and convert Price
-    df["Price"] = (
-        df["Price"]
-        .astype(str)
-        .str.replace("$", "", regex=False)
-        .str.replace("Free", "0", regex=False)
-        .str.strip()
-        .astype(float)
-    )
+        return df
 
-    # Clean and convert Installs
-    df["Installs"] = (
-        df["Installs"]
-        .astype(str)
-        .str.replace(",", "", regex=False)
-        .str.replace("+", "", regex=False)
-        .str.strip()
-        .astype(float)
-    )
-
-    # Calculate Revenue
-    df["Revenue"] = df["Price"] * df["Installs"]
-
-    return df
+    except Exception as e:
+        st.error(f"❌ Failed to load dataset: {e}")
+        return pd.DataFrame()
 
 # Load section-specific Lottie animations
 lotties = {
@@ -192,7 +190,7 @@ elif section == "📬 About & Contact":
     st.header("📬 About this Project")
     if lotties["contact"]:
         st_lottie(lotties["contact"], height=150)
-        
+
     st.write("""
     This interactive dashboard was created using Streamlit to explore Google Play Store app trends.
     It covers installs, paid app revenue, country-wise distributions, and time-series trends.
