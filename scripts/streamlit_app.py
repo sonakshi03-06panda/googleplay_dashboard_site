@@ -85,10 +85,21 @@ if section == "🏠 Home":
 
         with st.expander("ℹ️ About the Dataset"):
             st.write("""
-                This dashboard visualizes insights from Google Play Store data:
-                - Revenue vs Installs
-                - Global Install Distribution
-                - Install Trends Over Time
+                This dashboard visualizes insights from a Google Play Store dataset containing information 
+                about various Android apps available on the platform.
+
+        **Key Features of the Dataset:**
+        - App metadata: Name, Category, Rating, Reviews, Size, Type (Free/Paid), Price
+        - User engagement: Number of Installs, Last Updated Date
+        - Monetization: App pricing and estimated revenue (computed as `Price X Installs`)
+        - Global presence: Country column used for geo-visualizations (if available)
+
+        **Insights You Can Explore:**
+        - 💰 Relationship between revenue and installs for paid apps
+        - 🌍 Global distribution of app installs by category and country
+        - 📈 Monthly install trends across categories with growth highlights
+
+        > Note: Some charts are conditionally displayed based on the current IST time.
             """)
 
 # ------------------ 📈 Revenue vs Installs ------------------
