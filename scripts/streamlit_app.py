@@ -5,6 +5,7 @@ from sklearn.linear_model import LinearRegression
 from datetime import datetime
 import pytz
 import os
+import statsmodels.api as sm  
 
 # ------------------ Page Config ------------------
 st.set_page_config(page_title="Google Play Dashboard", page_icon="📱", layout="wide")
