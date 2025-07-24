@@ -30,17 +30,39 @@ def load_and_clean_data(filepath):
 
     df.dropna(subset=required_cols, inplace=True)
 
-    # Clean and convert types
-    df['Installs'] = df['Installs'].str.replace(r'[+,]', '', regex=True).astype(float)
+    # Clean and convert
+    df['Installs'] = (
+        df['Installs']
+        .astype(str)
+        .str.replace(r'[+,]', '', regex=True)
+        .str.strip()
+        .replace('Free', np.nan)
+    )
+    df['Installs'] = pd.to_numeric(df['Installs'], errors='coerce')
 
-    # Fix 'Free' entries and clean 'Price'
-    df['Price'] = df['Price'].replace('Free', '0')
-    df['Price'] = df['Price'].str.replace('$', '', regex=False).astype(float)
+    df['Price'] = (
+        df['Price']
+        .astype(str)
+        .str.replace('$', '', regex=False)
+        .str.strip()
+        .replace('Free', '0')
+    )
+    df['Price'] = pd.to_numeric(df['Price'], errors='coerce')
 
-    df['Reviews'] = df['Reviews'].str.replace(r'[+,]', '', regex=True).astype(float)
+    df['Reviews'] = (
+        df['Reviews']
+        .astype(str)
+        .str.replace(r'[+,]', '', regex=True)
+        .str.strip()
+    )
+    df['Reviews'] = pd.to_numeric(df['Reviews'], errors='coerce')
+
     df['Last Updated'] = pd.to_datetime(df['Last Updated'], errors='coerce')
 
-    df.dropna(subset=['Installs', 'Price', 'Last Updated'], inplace=True)
+    # Drop rows with any failed conversions
+    df.dropna(subset=['Installs', 'Price', 'Last Updated', 'Reviews'], inplace=True)
+
+    # Add Revenue
     df['Revenue'] = df['Installs'] * df['Price']
 
     return df
