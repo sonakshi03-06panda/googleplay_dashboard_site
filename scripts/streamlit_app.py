@@ -99,12 +99,10 @@ if not paid_apps.empty:
         height=600
     )
 
-    fig1.add_trace(
-        go.Scatter(
+    fig1.add_trace(go.Scatter(
             x=paid_apps["Installs"], y=paid_apps["Trendline"],
             mode="lines", name="Trendline",
-            line=dict(color="black", width=2)
-        )
+            line=dict(color="white", width=2))
     )
 
     fig1.update_layout(
