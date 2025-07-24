@@ -148,15 +148,16 @@ else:
 if within_time(datetime.strptime("18:00", "%H:%M").time(), datetime.strptime("21:00", "%H:%M").time()):
     st.subheader("📈 Time-Series of Installs by Category (6–9 PM IST)")
 
-    ts_df = df.query(
-        "~App.str.lower().str.startswith(('x','y','z')) and " +
-        "~App.str.contains('S', case=False) and Reviews > 500 and " +
-        "Category.str.startswith(('E', 'C', 'B'))", engine='python'
-    ).copy()
+    ts_df = df[
+    ~df['App'].astype(str).str.lower().str.startswith(tuple('xyz')) &
+    ~df['App'].astype(str).str.contains('S', case=False, na=False) &
+    (df['Reviews'] > 500) &
+    df['Category'].astype(str).str.startswith(tuple('ECB'))].copy()
 
     ts_df['Category'] = ts_df['Category'].replace({
-        'Beauty': 'सौंदर्य', 'Business': 'வணிகம்', 'Dating': 'Partnersuche'
-    })
+        'Beauty': 'सौंदर्य', 
+        'Business': 'வணிகம்', 
+        'Dating': 'Partnersuche'})
     ts_df['Month'] = ts_df['Last Updated'].dt.to_period('M').dt.to_timestamp()
 
     grouped_ts = ts_df.groupby(['Month', 'Category'])['Installs'].sum().reset_index()
