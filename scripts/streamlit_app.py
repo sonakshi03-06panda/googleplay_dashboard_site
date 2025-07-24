@@ -89,8 +89,9 @@ st.sidebar.caption("Built with ❤️ using Streamlit")
 
 # ------------------ 🏠 Home ------------------
 if section == "🏠 Home":
-    st_lottie(hero_lottie, height=200)
     st.title("📱 Google Play Store Dashboard")
+    if lotties["home"]:
+        st_lottie(lotties["home"], height=200)
     st.markdown("Explore insights from the Play Store dataset — app installs, revenue, global trends, and more!")
 
     col1, col2, col3 = st.columns(3)
@@ -111,6 +112,8 @@ if section == "🏠 Home":
 # ------------------ 📈 Revenue vs Installs ------------------
 elif section == "📈 Revenue vs Installs":
     st.header("💰 Revenue vs Installs (Paid Apps Only)")
+    if lotties["revenue"]:
+        st_lottie(lotties["revenue"], height=150)
 
     if not paid_apps.empty:
         model = LinearRegression().fit(paid_apps[["Installs"]], paid_apps["Revenue"])
@@ -132,6 +135,8 @@ elif section == "📈 Revenue vs Installs":
 # ------------------ 🌍 Choropleth Map ------------------
 elif section == "🌍 Choropleth Map":
     st.header("🌍 Global Installs by Country (Top 5 Categories)")
+    if lotties["globe"]:
+        st_lottie(lotties["globe"], height=150)
 
     if "Country" not in df.columns:
         st.error("❌ Dataset must include a 'Country' column for this map.")
@@ -157,6 +162,8 @@ elif section == "🌍 Choropleth Map":
 # ------------------ 📆 Time Series Chart ------------------
 elif section == "📆 Time Series Chart":
     st.header("📈 Install Trends Over Time by Category")
+    if lotties["time_series"]:
+        st_lottie(lotties["time_series"], height=150)
 
     time_df = df.dropna(subset=["Last Updated", "Installs", "Category"])
     categories = sorted(time_df["Category"].unique())
@@ -183,6 +190,9 @@ elif section == "📆 Time Series Chart":
 # ------------------ 📬 About & Contact ------------------
 elif section == "📬 About & Contact":
     st.header("📬 About this Project")
+    if lotties["contact"]:
+        st_lottie(lotties["contact"], height=150)
+        
     st.write("""
     This interactive dashboard was created using Streamlit to explore Google Play Store app trends.
     It covers installs, paid app revenue, country-wise distributions, and time-series trends.
