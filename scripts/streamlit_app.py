@@ -24,13 +24,14 @@ if theme == "Dark":
     )
 
 # ------------------ Lottie Animation ------------------
-def load_lottie_url(url):
-    r = requests.get(url)
-    if r.status_code != 200:
-        return None
-    return r.json()
-
-hero_lottie = load_lottie_url("https://assets9.lottiefiles.com/private_files/lf30_mn53fgpa.json")
+def load_lottie_url(url: str):
+    try:
+        r = requests.get(url)
+        if r.status_code == 200:
+            return r.json()
+    except Exception as e:
+        print("Lottie load error:", e)
+    return None
 
 # ------------------ Load Data ------------------
 @st.cache_data
@@ -64,6 +65,15 @@ def load_data():
     df["Revenue"] = df["Price"] * df["Installs"]
 
     return df
+
+# Load section-specific Lottie animations
+lotties = {
+    "home": load_lottie_url("https://assets4.lottiefiles.com/packages/lf20_jcikwtux.json"),
+    "revenue": load_lottie_url("https://assets4.lottiefiles.com/packages/lf20_gnb1zjua.json"),
+    "globe": load_lottie_url("https://assets3.lottiefiles.com/packages/lf20_q5pk6p1k.json"),
+    "time_series": load_lottie_url("https://assets9.lottiefiles.com/packages/lf20_oGlWy5.json"),
+    "contact": load_lottie_url("https://assets10.lottiefiles.com/packages/lf20_jtkxvdrk.json")
+}
 
 # ------------------ Navigation ------------------
 st.sidebar.title("📊 Navigation")
