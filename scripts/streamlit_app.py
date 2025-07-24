@@ -36,11 +36,34 @@ hero_lottie = load_lottie_url("https://assets9.lottiefiles.com/private_files/lf3
 @st.cache_data
 def load_data():
     df = pd.read_csv("google_playstore.csv")
-    df["Last Updated"] = pd.to_datetime(df["Last Updated"], errors="coerce")
-    return df
 
-df = load_data()
-paid_apps = df[df["Price"] > 0]
+    # Convert Last Updated to datetime
+    df["Last Updated"] = pd.to_datetime(df["Last Updated"], errors="coerce")
+
+    # Clean and convert Price
+    df["Price"] = (
+        df["Price"]
+        .astype(str)
+        .str.replace("$", "", regex=False)
+        .str.replace("Free", "0", regex=False)
+        .str.strip()
+        .astype(float)
+    )
+
+    # Clean and convert Installs
+    df["Installs"] = (
+        df["Installs"]
+        .astype(str)
+        .str.replace(",", "", regex=False)
+        .str.replace("+", "", regex=False)
+        .str.strip()
+        .astype(float)
+    )
+
+    # Calculate Revenue
+    df["Revenue"] = df["Price"] * df["Installs"]
+
+    return df
 
 # ------------------ Navigation ------------------
 st.sidebar.title("📊 Navigation")
