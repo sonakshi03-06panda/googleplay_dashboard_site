@@ -59,7 +59,7 @@ df = load_data()
 paid_apps = df[df["Price"] > 0] if not df.empty else pd.DataFrame()
 
 # ------------------ Navigation ------------------
-st.sidebar.title("📊 Dashboard Menu")
+st.sidebar.title("Dashboard Menu")
 section = st.sidebar.radio("Go to", [
     "🏠 Home",
     "📈 Revenue vs Installs",
