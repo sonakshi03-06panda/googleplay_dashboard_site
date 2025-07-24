@@ -102,11 +102,10 @@ if not paid_apps.empty:
     fig1.add_trace(go.Scatter(
             x=paid_apps["Installs"], y=paid_apps["Trendline"],
             mode="lines", name="Trendline",
-            line=dict(color="black", width=2))
+            line=dict(color="white", width=2))
     )
 
     fig1.update_layout(
-        plot_bgcolor='white',
         legend=dict(title="Category", x=1.02, y=1, xanchor='left', yanchor='top'),
         margin=dict(r=180)
     )
