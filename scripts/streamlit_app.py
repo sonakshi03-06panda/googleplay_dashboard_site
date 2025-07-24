@@ -32,7 +32,11 @@ def load_and_clean_data(filepath):
 
     # Clean and convert types
     df['Installs'] = df['Installs'].str.replace(r'[+,]', '', regex=True).astype(float)
+
+    # Fix 'Free' entries and clean 'Price'
+    df['Price'] = df['Price'].replace('Free', '0')
     df['Price'] = df['Price'].str.replace('$', '', regex=False).astype(float)
+
     df['Reviews'] = df['Reviews'].str.replace(r'[+,]', '', regex=True).astype(float)
     df['Last Updated'] = pd.to_datetime(df['Last Updated'], errors='coerce')
 
@@ -51,7 +55,6 @@ ist_now = datetime.now(pytz.timezone("Asia/Kolkata")).time()
 
 def within_time(start, end):
     return start <= ist_now <= end
-
 
 # -------------------- Chart 1: Revenue vs Installs --------------------
 st.subheader("💰 Revenue vs Installs (Paid Apps Only) with Trendline")
@@ -91,7 +94,6 @@ if not paid_apps.empty:
 else:
     st.warning("⚠️ No paid apps available.")
 
-
 # -------------------- Chart 2: Choropleth Map (6–8 PM IST) --------------------
 if within_time(datetime.strptime("18:00", "%H:%M").time(), datetime.strptime("20:00", "%H:%M").time()):
     st.subheader("🗺️ Global Installs by Category (6–8 PM IST)")
@@ -116,7 +118,6 @@ if within_time(datetime.strptime("18:00", "%H:%M").time(), datetime.strptime("20
     st.plotly_chart(fig2, use_container_width=True)
 else:
     st.info("🌐 Choropleth map is available only between 6 PM and 8 PM IST.")
-
 
 # -------------------- Chart 3: Time-Series (6–9 PM IST) --------------------
 if within_time(datetime.strptime("18:00", "%H:%M").time(), datetime.strptime("21:00", "%H:%M").time()):
