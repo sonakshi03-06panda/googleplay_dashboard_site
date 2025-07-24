@@ -120,7 +120,10 @@ else:
 if within_time(datetime.strptime("18:00", "%H:%M").time(), datetime.strptime("20:00", "%H:%M").time()):
     st.subheader("🗺️ Global Installs by Category (6–8 PM IST)")
 
-    chorodata = df.query("~Category.str.startswith(('A','C','G','S')) and Installs > 1_000_000", engine='python')
+    chorodata = df[
+    ~df['Category'].astype(str).str.startswith(('A', 'C', 'G', 'S')) &
+    (df['Installs'] > 1_000_000)].copy()
+
     top5_categories = chorodata['Category'].value_counts().nlargest(5).index
     chorodata = chorodata[chorodata['Category'].isin(top5_categories)].copy()
     chorodata['Country'] = np.random.choice(['USA', 'IND', 'GBR', 'CAN', 'AUS'], size=len(chorodata))
