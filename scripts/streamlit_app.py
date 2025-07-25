@@ -164,15 +164,24 @@ elif section == "📆 Time Series Chart":
     if show_chart:
         st.header("📈 Install Trends Over Time by Category (Filtered)")
 
-        if "App" not in df.columns or "Category" not in df.columns or "Reviews" not in df.columns:
-            st.warning("Dataset must include 'App', 'Category', 'Reviews' columns.")
+        required_columns = {"App", "Category", "Reviews", "Rating", "Last Updated", "Installs"}
+        if not required_columns.issubset(df.columns):
+            st.warning(f"Dataset must include the following columns: {', '.join(required_columns)}.")
         else:
-            filtered_df = df[
-                (df["Reviews"] > 500) & 
-                (df["Rating"] > 4.0) & 
-                (~df["App"].str.contains("s", case=False, regex=True))
-                ].copy()
+            # Convert Reviews and Rating to numeric if needed
+            df["Reviews"] = pd.to_numeric(df["Reviews"], errors="coerce")
+            df["Rating"] = pd.to_numeric(df["Rating"], errors="coerce")
 
+            # Drop rows with missing values in critical columns
+            df_cleaned = df.dropna(subset=["Reviews", "Rating", "App", "Category", "Last Updated", "Installs"]).copy()
+
+            # Apply filters safely
+            filtered_df = df_cleaned[
+                (df_cleaned["Reviews"] > 500) &
+                (df_cleaned["Rating"] > 4.0) &
+                (~df_cleaned["App"].str.contains("s", case=False, regex=True))].copy()
+
+            # Translate selected categories
             translations = {
                 "Beauty": "सौंदर्य",       # Hindi
                 "Business": "வணிகம்",     # Tamil
@@ -180,7 +189,10 @@ elif section == "📆 Time Series Chart":
             }
             filtered_df["Category"] = filtered_df["Category"].replace(translations)
 
+            # Parse 'Last Updated' to datetime
             filtered_df["Last Updated"] = pd.to_datetime(filtered_df["Last Updated"], errors="coerce")
+
+            # Group by month and category
             monthly = (
                 filtered_df.dropna(subset=["Last Updated"])
                 .groupby([pd.Grouper(key="Last Updated", freq="M"), "Category"])
@@ -188,9 +200,11 @@ elif section == "📆 Time Series Chart":
                 .reset_index()
             )
 
+            # Calculate growth rate
             monthly["Previous"] = monthly.groupby("Category")["Installs"].shift(1)
             monthly["Growth"] = ((monthly["Installs"] - monthly["Previous"]) / monthly["Previous"]) * 100
 
+            # Plot line chart
             fig = px.line(
                 monthly,
                 x="Last Updated",
@@ -199,6 +213,7 @@ elif section == "📆 Time Series Chart":
                 title="Install Trends by Category (Filtered & Translated)"
             )
 
+            # Highlight strong growth areas
             highlight_df = monthly[monthly["Growth"] > 20]
             for cat in highlight_df["Category"].unique():
                 df_area = highlight_df[highlight_df["Category"] == cat]
