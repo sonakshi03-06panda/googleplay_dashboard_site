@@ -91,7 +91,7 @@ if section == "🏠 Home":
         **Key Features of the Dataset:**
         - App metadata: Name, Category, Rating, Reviews, Size, Type (Free/Paid), Price
         - User engagement: Number of Installs, Last Updated Date
-        - Monetization: App pricing and estimated revenue (computed as `Price X Installs`)
+        - Monetization: App pricing and estimated revenue (computed as Price X Installs)
         - Global presence: Country column used for geo-visualizations (if available)
 
         **Insights You Can Explore:**
@@ -167,23 +167,22 @@ elif section == "📆 Time Series Chart":
         if "App" not in df.columns or "Category" not in df.columns or "Reviews" not in df.columns:
             st.warning("Dataset must include 'App', 'Category', 'Reviews' columns.")
         else:
-            filtered = df[
-                df["Reviews"] > 500 &
-                df["Category"].str.startswith(("E", "C", "B")) &
-                ~df["App"].str.lower().str.startswith(("x", "y", "z")) &
-                ~df["App"].str.contains("s", case=False, regex=True)
-            ].copy()
+            filtered_df = df[
+                (df["Reviews"] > 500) & 
+                (df["Rating"] > 4.0) & 
+                (~df["App"].str.contains("s", case=False, regex=True))
+                ].copy()
 
             translations = {
                 "Beauty": "सौंदर्य",       # Hindi
                 "Business": "வணிகம்",     # Tamil
                 "Dating": "Partnersuche"  # German
             }
-            filtered["Category"] = filtered["Category"].replace(translations)
+            filtered_df["Category"] = filtered_df["Category"].replace(translations)
 
-            filtered["Last Updated"] = pd.to_datetime(filtered["Last Updated"], errors="coerce")
+            filtered_df["Last Updated"] = pd.to_datetime(filtered_df["Last Updated"], errors="coerce")
             monthly = (
-                filtered.dropna(subset=["Last Updated"])
+                filtered_df.dropna(subset=["Last Updated"])
                 .groupby([pd.Grouper(key="Last Updated", freq="M"), "Category"])
                 .agg({"Installs": "sum"})
                 .reset_index()
