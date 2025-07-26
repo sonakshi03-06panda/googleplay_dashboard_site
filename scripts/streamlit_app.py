@@ -236,6 +236,6 @@ elif section == "📬 Contact":
     st.subheader("👩‍💻 Developer")
     st.markdown("**Sonakshi Panda**")
     st.markdown("🔗 [GitHub](https://github.com/sonakshi03-06panda)")
-    st.markdown("✉️ Email: [sonakshi0306panda@outlook.com](mailto:sonakshi0306panda@outlook.com)")
+    st.markdown("✉️ [sonakshi0306panda@outlook.com](mailto:sonakshi0306panda@outlook.com)")
 
     st.info("For any queries or support related to this dashboard, please reach out to the developer via the email above.")
