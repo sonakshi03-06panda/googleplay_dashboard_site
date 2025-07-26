@@ -130,56 +130,63 @@ elif section == "🌍 Choropleth Map":
     if show_map:
         st.subheader("🗺️ Global Installs by Category (6–8 PM IST)")
 
-        # Ensure required columns exist
+        # Check required columns
         if "Category" not in df.columns or "Installs" not in df.columns:
             st.warning("Dataset must include 'Category' and 'Installs' columns.")
         else:
-            # Apply category filter
-            chorofilter = df[
-                ~df['Category'].str.startswith(tuple("ACGS")) &
-                (df['Installs'] > 1_000_000)
-            ]
+            # Filter apps: Installs > 1M, and Category does NOT start with A/C/G/S
+            filtered = df[
+                (df["Installs"] > 1_000_000) &
+                (~df["Category"].str.startswith(("A", "C", "G", "S")))
+            ].copy()
 
-            # Select top 5 categories by frequency
-            top5_categories = chorofilter['Category'].value_counts().nlargest(5).index
-
-            if top5_categories.empty:
-                st.warning("No data available after filtering.")
+            if filtered.empty:
+                st.warning("No data available after applying filters.")
                 st.stop()
 
-            # Filter again to keep only those categories
-            chorodata = chorofilter[chorofilter['Category'].isin(top5_categories)].copy()
-
-            # Add mock ISO-3 country codes
-            chorodata['Country'] = np.random.choice(['USA', 'IND', 'GBR', 'CAN', 'AUS'], size=len(chorodata))
-
-            # Let user select one of the top 5 categories
-            selected_category = st.radio("Select Category to View:", top5_categories)
-
-            # Group by country for the selected category
-            agg_data = (
-                chorodata[chorodata['Category'] == selected_category]
-                .groupby('Country', as_index=False)['Installs']
+            # Get top 5 categories by total installs
+            top_categories = (
+                filtered.groupby("Category")["Installs"]
                 .sum()
+                .nlargest(5)
+                .index
             )
 
-            # Build the choropleth map
-            fig2 = px.choropleth(
+            filtered_top = filtered[filtered["Category"].isin(top_categories)].copy()
+
+            # Add mock ISO-3 country codes (since no real Country data)
+            filtered_top["Country"] = np.random.choice(
+                ["USA", "IND", "GBR", "CAN", "AUS"],
+                size=len(filtered_top)
+            )
+
+            # Let user select a category to view
+            selected_category = st.radio("Select a Category to View:", top_categories)
+
+            agg_data = (
+                filtered_top[filtered_top["Category"] == selected_category]
+                .groupby("Country", as_index=False)["Installs"].sum()
+            )
+
+            # Choropleth map using Plotly
+            fig = px.choropleth(
                 agg_data,
-                locations='Country',
-                locationmode='ISO-3',
-                color='Installs',
-                hover_name='Country',
-                title=f'Choropleth Map for {selected_category} Apps',
-                color_continuous_scale='Plasma',
+                locations="Country",
+                locationmode="ISO-3",
+                color="Installs",
+                hover_name="Country",
+                title=f"Choropleth Map for '{selected_category}' Category",
+                color_continuous_scale="Plasma",
                 height=600
             )
 
-            fig2.update_layout(
+            fig.update_layout(
                 margin=dict(r=50, l=50, t=50, b=50),
                 coloraxis_colorbar=dict(title="Installs")
             )
-            st.plotly_chart(fig2, use_container_width=True)
+
+            st.plotly_chart(fig, use_container_width=True)
+
     else:
         st.info("🌐 Choropleth map is available only between 6 PM and 8 PM IST.")
 
