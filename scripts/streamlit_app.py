@@ -75,16 +75,8 @@ st.sidebar.caption("Built with ❤️ using Streamlit")
 if section == "🏠 Home":
     st.title("📱 Google Play Store Dashboard")
 
-    if df.empty:
-        st.warning("Dataset is empty or failed to load.")
-    else:
-        col1, col2, col3 = st.columns(3)
-        col1.metric("Total Apps", f"{len(df):,}")
-        col2.metric("Paid Apps", f"{len(paid_apps):,}")
-        col3.metric("Categories", df["Category"].nunique())
-
-        st.subheader("ℹ️ About the Project")
-        st.write("""
+    st.subheader("ℹ️ About the Project")
+    st.write("""
         This interactive data visualization dashboard was built using Python and Streamlit to analyze trends from the Google Play Store dataset.
         
         The goal of this project is to help users and stakeholders explore mobile app market trends, identify category-wise popularity, analyze revenue from paid apps, and understand global distribution patterns.
@@ -104,6 +96,14 @@ if section == "🏠 Home":
 # ------------------ 📈 Revenue vs Installs ------------------
 elif section == "📈 Revenue vs Installs":
     st.header("💰 Revenue vs Installs (Paid Apps Only)")
+
+     if df.empty:
+        st.warning("Dataset is empty or failed to load.")
+    else:
+        col1, col2, col3 = st.columns(3)
+        col1.metric("Total Apps", f"{len(df):,}")
+        col2.metric("Paid Apps", f"{len(paid_apps):,}")
+        col3.metric("Categories", df["Category"].nunique())
 
     if paid_apps.empty:
         st.warning("No paid apps available in dataset.")
