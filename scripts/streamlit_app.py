@@ -83,8 +83,8 @@ if section == "🏠 Home":
         col2.metric("Paid Apps", f"{len(paid_apps):,}")
         col3.metric("Categories", df["Category"].nunique())
 
-        with st.expander("ℹ️ About the Project"):
-            st.write("""
+        st.subheader("ℹ️ About the Project")
+        st.write("""
         This interactive data visualization dashboard was built using Python and Streamlit to analyze trends from the Google Play Store dataset.
         
         The goal of this project is to help users and stakeholders explore mobile app market trends, identify category-wise popularity, analyze revenue from paid apps, and understand global distribution patterns.
