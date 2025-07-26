@@ -242,11 +242,6 @@ elif section == "📬 About & Contact":
     st.subheader("👩‍💻 Developer")
     st.markdown("**Sonakshi Panda**")
     st.markdown("🔗 [GitHub](https://github.com/sonakshi03-06panda)")
+    st.markdown("✉️ Email: [sonakshi0306panda@outlook.com](mailto:sonakshi0306panda@outlook.com)")
 
-    with st.form("contact_form"):
-        st.write("📨 Send a Message")
-        name = st.text_input("Your Name")
-        message = st.text_area("Your Message")
-        submitted = st.form_submit_button("Send")
-        if submitted:
-            st.success("✅ Message sent. Thank you!")
+    st.info("For any queries or support related to this dashboard, please reach out to the developer via the email above.")
