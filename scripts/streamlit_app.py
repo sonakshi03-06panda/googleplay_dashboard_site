@@ -194,18 +194,22 @@ elif section == "📆 Time Series Chart":
         if not required_columns.issubset(df.columns):
             st.warning(f"Dataset must include the following columns: {', '.join(required_columns)}.")
         else:
-            # Convert Reviews and Rating to numeric if needed
+            # Convert numeric columns
             df["Reviews"] = pd.to_numeric(df["Reviews"], errors="coerce")
             df["Rating"] = pd.to_numeric(df["Rating"], errors="coerce")
 
-            # Drop rows with missing values in critical columns
-            df_cleaned = df.dropna(subset=["Reviews", "Rating", "App", "Category", "Last Updated", "Installs"]).copy()
+            # Drop rows with NaN in required fields
+            df_cleaned = df.dropna(subset=[
+                "Reviews", "Rating", "App", "Category", "Last Updated", "Installs"
+            ]).copy()
 
-            # Apply filters safely
+            # Apply all filters
             filtered_df = df_cleaned[
                 (df_cleaned["Reviews"] > 500) &
-                (df_cleaned["Rating"] > 4.0) &
-                (~df_cleaned["App"].str.contains("s", case=False, regex=True))].copy()
+                (~df_cleaned["App"].str.lower().str.startswith(("x", "y", "z"))) &
+                (~df_cleaned["App"].str.contains("s", case=False, regex=True)) &
+                (df_cleaned["Category"].str.startswith(("E", "C", "B")))
+            ].copy()
 
             # Translate selected categories
             translations = {
@@ -217,16 +221,17 @@ elif section == "📆 Time Series Chart":
 
             # Parse 'Last Updated' to datetime
             filtered_df["Last Updated"] = pd.to_datetime(filtered_df["Last Updated"], errors="coerce")
+            filtered_df = filtered_df.dropna(subset=["Last Updated"])
 
-            # Group by month and category
+            # Group by Month and Category
             monthly = (
-                filtered_df.dropna(subset=["Last Updated"])
+                filtered_df
                 .groupby([pd.Grouper(key="Last Updated", freq="M"), "Category"])
                 .agg({"Installs": "sum"})
                 .reset_index()
             )
 
-            # Calculate growth rate
+            # Calculate MoM growth
             monthly["Previous"] = monthly.groupby("Category")["Installs"].shift(1)
             monthly["Growth"] = ((monthly["Installs"] - monthly["Previous"]) / monthly["Previous"]) * 100
 
@@ -239,23 +244,24 @@ elif section == "📆 Time Series Chart":
                 title="Install Trends by Category (Filtered & Translated)"
             )
 
-            # Highlight strong growth areas
+            # Highlight areas with >20% MoM growth
             highlight_df = monthly[monthly["Growth"] > 20]
             for cat in highlight_df["Category"].unique():
                 df_area = highlight_df[highlight_df["Category"] == cat]
                 fig.add_scatter(
                     x=df_area["Last Updated"],
                     y=df_area["Installs"],
-                    mode='lines',
+                    mode="lines",
                     name=f"{cat} Growth > 20%",
                     line=dict(width=0),
-                    fill='tozeroy',
-                    fillcolor='rgba(255,0,0,0.2)'
+                    fill="tozeroy",
+                    fillcolor="rgba(255,0,0,0.2)"
                 )
 
             st.plotly_chart(fig, use_container_width=True)
+
     else:
-        st.warning("⏳ Time Series Chart is visible only between 6 PM and 9 PM IST.")
+        st.info("⏳ Time Series Chart is visible only between 6 PM and 9 PM IST.")
 
 # ------------------ 📬 About & Contact ------------------
 elif section == "📬 Contact":
