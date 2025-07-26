@@ -97,7 +97,7 @@ if section == "🏠 Home":
 elif section == "📈 Revenue vs Installs":
     st.header("💰 Revenue vs Installs (Paid Apps Only)")
 
-     if df.empty:
+    if df.empty:
         st.warning("Dataset is empty or failed to load.")
     else:
         col1, col2, col3 = st.columns(3)
