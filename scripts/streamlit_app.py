@@ -125,8 +125,9 @@ elif section == "📈 Revenue vs Installs":
 
 # ------------------ 🌍 Choropleth Map (6–8 PM IST) ------------------
 elif section == "🌍 Choropleth Map":
-    
-    if datetime.strptime("18:00", "%H:%M").time() <= ist_now <= datetime.strptime("20:00", "%H:%M").time():
+    now_ist, show_map = is_ist_time_between(18, 20)
+
+    if show_map:
         st.subheader("🗺️ Global Installs by Category (6–8 PM IST)")
 
         # Ensure required columns exist
