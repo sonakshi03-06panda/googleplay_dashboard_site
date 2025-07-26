@@ -88,12 +88,6 @@ if section == "🏠 Home":
                 This dashboard visualizes insights from a Google Play Store dataset containing information 
                 about various Android apps available on the platform.
 
-        **Key Features of the Dataset:**
-        - App metadata: Name, Category, Rating, Reviews, Size, Type (Free/Paid), Price
-        - User engagement: Number of Installs, Last Updated Date
-        - Monetization: App pricing and estimated revenue (computed as Price X Installs)
-        - Global presence: Country column used for geo-visualizations (if available)
-
         **Insights You Can Explore:**
         - 💰 Relationship between revenue and installs for paid apps
         - 🌍 Global distribution of app installs by category and country
@@ -235,8 +229,20 @@ elif section == "📆 Time Series Chart":
 elif section == "📬 About & Contact":
     st.header("📬 About this Project")
     st.write("""
-        This interactive dashboard was created using Streamlit to explore Google Play Store app trends.
-        It covers installs, paid app revenue, country-wise distributions, and time-series trends.
+        This interactive data visualization dashboard was built using Python and Streamlit to analyze trends from the Google Play Store dataset.
+        
+        The goal of this project is to help users and stakeholders explore mobile app market trends, identify category-wise popularity, analyze revenue from paid apps, and understand global distribution patterns.
+
+        **Key Features:**
+        - 📊 **Revenue vs Installs Analysis** for Paid Apps: Understand how paid apps perform in terms of installs and revenue generation.
+        - 🌍 **Country-wise Install Distribution**: Visualize how different app categories are installed across countries using a global map (active during specific hours).
+        - 📈 **Time Series Trends**: Explore how app installs have changed over time across categories with interactive filters and multi-language support.
+        - 🔎 **Dynamic Filters**: Users can filter by app category, install thresholds, and more to customize the insights they see.
+        - 🧠 **Trendline Insights**: Automatically-generated trendlines offer additional business intelligence at a glance.
+
+        The dashboard is designed to be visually intuitive, informative, and responsive for both technical and non-technical users.
+
+        All charts are interactive, and the application runs entirely on the web—no local setup needed. It is ideal for business analysts, app developers, or anyone exploring app store performance metrics.
     """)
 
     st.subheader("👩‍💻 Developer")
