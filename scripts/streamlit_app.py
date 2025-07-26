@@ -1,5 +1,6 @@
 import streamlit as st
 import pandas as pd
+import numpy as np
 import plotly.express as px
 from sklearn.linear_model import LinearRegression
 from datetime import datetime
@@ -124,37 +125,62 @@ elif section == "📈 Revenue vs Installs":
 
 # ------------------ 🌍 Choropleth Map (6–8 PM IST) ------------------
 elif section == "🌍 Choropleth Map":
-    now_ist, show_map = is_ist_time_between(18, 20)
+    
+    if datetime.strptime("18:00", "%H:%M").time() <= ist_now <= datetime.strptime("20:00", "%H:%M").time():
+        st.subheader("🗺️ Global Installs by Category (6–8 PM IST)")
 
-    if show_map:
-        st.header("🌍 Global Installs by Country (Filtered Categories)")
-
-        if "Country" not in df.columns:
-            st.warning("Dataset must include a 'Country' column.")
+        # Ensure required columns exist
+        if "Category" not in df.columns or "Installs" not in df.columns:
+            st.warning("Dataset must include 'Category' and 'Installs' columns.")
         else:
-            filtered = df[
-                ~df["Category"].str.startswith(("A", "C", "G", "S")) &
-                (df["Installs"] > 1_000_000)
+            # Apply category filter
+            chorofilter = df[
+                ~df['Category'].str.startswith(tuple("ACGS")) &
+                (df['Installs'] > 1_000_000)
             ]
-            top_categories = filtered.groupby("Category")["Installs"].sum().nlargest(5).index.tolist()
-            filtered_df = filtered[filtered["Category"].isin(top_categories)]
 
-            map_df = filtered_df.groupby(["Country", "Category"])["Installs"].sum().reset_index()
+            # Select top 5 categories by frequency
+            top5_categories = chorofilter['Category'].value_counts().nlargest(5).index
 
-            fig = px.choropleth(
-                map_df,
-                locations="Country",
-                locationmode="country names",
-                color="Installs",
-                hover_name="Category",
-                animation_frame="Category",
-                color_continuous_scale="Turbo",
-                title="Top 5 Categories (Installs > 1M) by Country"
+            if top5_categories.empty:
+                st.warning("No data available after filtering.")
+                st.stop()
+
+            # Filter again to keep only those categories
+            chorodata = chorofilter[chorofilter['Category'].isin(top5_categories)].copy()
+
+            # Add mock ISO-3 country codes
+            chorodata['Country'] = np.random.choice(['USA', 'IND', 'GBR', 'CAN', 'AUS'], size=len(chorodata))
+
+            # Let user select one of the top 5 categories
+            selected_category = st.radio("Select Category to View:", top5_categories)
+
+            # Group by country for the selected category
+            agg_data = (
+                chorodata[chorodata['Category'] == selected_category]
+                .groupby('Country', as_index=False)['Installs']
+                .sum()
             )
-            fig.update_layout(margin={"r": 0, "t": 40, "l": 0, "b": 0})
-            st.plotly_chart(fig, use_container_width=True)
+
+            # Build the choropleth map
+            fig2 = px.choropleth(
+                agg_data,
+                locations='Country',
+                locationmode='ISO-3',
+                color='Installs',
+                hover_name='Country',
+                title=f'Choropleth Map for {selected_category} Apps',
+                color_continuous_scale='Plasma',
+                height=600
+            )
+
+            fig2.update_layout(
+                margin=dict(r=50, l=50, t=50, b=50),
+                coloraxis_colorbar=dict(title="Installs")
+            )
+            st.plotly_chart(fig2, use_container_width=True)
     else:
-        st.warning("⏳ Choropleth Map is visible only between 6 PM and 8 PM IST.")
+        st.info("🌐 Choropleth map is available only between 6 PM and 8 PM IST.")
 
 # ------------------ 📆 Time Series Chart (6–9 PM IST) ------------------
 elif section == "📆 Time Series Chart":
