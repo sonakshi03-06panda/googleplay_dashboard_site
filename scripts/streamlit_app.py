@@ -66,7 +66,7 @@ section = st.sidebar.radio("Go to", [
     "📈 Revenue vs Installs",
     "🌍 Choropleth Map",
     "📆 Time Series Chart",
-    "📬 About & Contact"
+    "📬 Contact"
 ])
 st.sidebar.markdown("---")
 st.sidebar.caption("Built with ❤️ using Streamlit")
