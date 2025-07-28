@@ -8,8 +8,10 @@ import pytz
 import os
 import statsmodels.api as sm  
 
+
 # ------------------ Page Config ------------------
 st.set_page_config(page_title="Google Play Dashboard", page_icon="📱", layout="wide")
+
 
 # ------------------ Utility: IST Time Checker ------------------
 def is_ist_time_between(start_hour, end_hour):
@@ -17,9 +19,11 @@ def is_ist_time_between(start_hour, end_hour):
     now = datetime.now(ist)
     return now, start_hour <= now.hour < end_hour
 
+
 # ------------------ Display IST Time ------------------
 now_ist, _ = is_ist_time_between(0, 24)
 st.markdown(f"<div style='text-align:right; font-size:14px;'>🕒 Current IST Time: <b>{now_ist.strftime('%I:%M %p')}</b></div>", unsafe_allow_html=True)
+
 
 # ------------------ Load and Clean Data ------------------
 @st.cache_data
@@ -60,6 +64,7 @@ def load_data():
 df = load_data()
 paid_apps = df[df["Price"] > 0] if not df.empty else pd.DataFrame()
 
+
 # ------------------ Navigation ------------------
 st.sidebar.title("Dashboard Menu")
 section = st.sidebar.radio("Go to", [
@@ -71,6 +76,7 @@ section = st.sidebar.radio("Go to", [
 ])
 st.sidebar.markdown("---")
 st.sidebar.caption("Built with ❤️ using Streamlit")
+
 
 # ------------------ 🏠 Home ------------------
 if section == "🏠 Home":
@@ -93,6 +99,7 @@ if section == "🏠 Home":
 
         > All charts are interactive, and the application runs entirely on the web—no local setup needed. It is ideal for business analysts, app developers, or anyone exploring app store performance metrics.
     """)
+
 
 # ------------------ 📈 Revenue vs Installs ------------------
 elif section == "📈 Revenue vs Installs":
@@ -122,6 +129,7 @@ elif section == "📈 Revenue vs Installs":
         )
         fig.update_layout(legend=dict(x=1.02, y=1))
         st.plotly_chart(fig, use_container_width=True)
+
 
 # ------------------ 🌍 Choropleth Map (6–8 PM IST) ------------------
 elif section == "🌍 Choropleth Map":
@@ -189,6 +197,7 @@ elif section == "🌍 Choropleth Map":
 
     else:
         st.info("🌐 Choropleth map is available only between 6 PM and 8 PM IST.")
+
 
 # ------------------ 📆 Time Series Chart (6–9 PM IST) ------------------
 elif section == "📆 Time Series Chart":
@@ -269,6 +278,7 @@ elif section == "📆 Time Series Chart":
 
     else:
         st.info("⏳ Time Series Chart is visible only between 6 PM and 9 PM IST.")
+
 
 # ------------------ 📬 About & Contact ------------------
 elif section == "📬 Contact":
