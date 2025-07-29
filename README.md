@@ -40,7 +40,7 @@ This project reveals trends across app categories, revenue generation, global in
 
 ## 📚 Tech Stack
 
-- **Frontend/UI**: Streamlit
+- **Frontend/UI**: Streamlit, Netlify
 - **Data Handling**: Pandas, NumPy
 - **Visualization**: Plotly Express, Seaborn (backup), Matplotlib (fallback)
 - **Time/Geo Filtering**: `datetime`, `pytz`, and Plotly's Choropleth map
@@ -51,5 +51,3 @@ This project reveals trends across app categories, revenue generation, global in
 - Analyze install patterns across time, category, and geography
 - Explore the relationship between installs, revenue, and ratings
 - Support data-driven decisions for app development, marketing, or investment
-
-
