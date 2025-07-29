@@ -4,7 +4,7 @@ A fully interactive, real-time dashboard built with **Streamlit** to explore and
 This project reveals trends across app categories, revenue generation, global install patterns, and multilingual insights — making market intelligence accessible for everyone.
 
 🚀 **Live Demo**:  
-[▶️ Click here to open the dashboard](https://appplaydashboardsite-loqff8eeaec5i7ba5lnuhk.streamlit.app/)
+[▶️ Click here to open the dashboard](https://sonakshi-google-playstore-dashboard06.netlify.app/)
 
 ---
 
